@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pipo</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pipo">
+<style>
+:root{
+  --bg:#FDF0F5;--surface:#FFFFFF;--ink:#3A2430;--muted:#7A5F6B;--line:#F2D3DF;
+  --accent:#D4508A;--accent-ink:#FFFFFF;--accent2:#A45FC9;--sun:#F3C24F;--sun-ink:#3A2C05;--listen:#8E5BD6;
+  --robot:#F7B6CE;--robot-dark:#E07FA8;--screen:#3A2430;--face:#FFE3EE;--cheek:#FF8FB1;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#24161C;--surface:#33212A;--ink:#F8E9EF;--muted:#C9A9B6;--line:#4A3039;
+  --accent:#F28DB8;--accent-ink:#2A0F1B;--accent2:#C59BEA;--listen:#B892E8;
+  --robot:#D98FAE;--robot-dark:#B96C8E;--screen:#1A0E13;--face:#FFD3E4;--cheek:#F07CA3;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg)}
+body{color:var(--ink);font:18px/1.45 Verdana,system-ui,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lang{display:flex;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:3px}
+.lang button{padding:8px 18px;border-radius:999px;font-weight:700;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.newchat{font-size:15px;font-weight:700;color:var(--muted);padding:8px 14px;border:2px solid var(--line);border-radius:999px;background:var(--surface)}
+
+.stage{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.robot{width:190px;height:190px}
+.robot svg{width:100%;height:100%;overflow:visible}
+.bob{transform-origin:100px 190px;animation:bob 4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.eye{transform-box:fill-box;transform-origin:center;animation:blink 5s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.mouth-talk{opacity:0}
+.talking .mouth-smile{opacity:0}
+.talking .mouth-talk{opacity:1;transform-box:fill-box;transform-origin:center;animation:talk .28s ease-in-out infinite alternate}
+@keyframes talk{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+.thinking .eye{animation:look 1.2s ease-in-out infinite}
+@keyframes look{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
+.bubble{background:var(--surface);border:2px solid var(--line);border-radius:24px;padding:16px 20px;min-height:110px;position:relative;min-width:0}
+.bubble::before{content:"";position:absolute;left:-11px;top:46px;width:18px;height:18px;background:var(--surface);border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+.bubble .name{font-size:15px;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.bubble .text{font-size:24px;font-weight:700;text-wrap:balance}
+
+.microw{display:flex;flex-direction:column;align-items:center;gap:8px}
+.mics{display:flex;gap:28px;justify-content:center;flex-wrap:wrap}
+.mic.fr{background:var(--accent2);box-shadow:0 6px 0 color-mix(in srgb,var(--accent2) 60%,#000)}
+.mic{flex-direction:column;gap:2px}
+.mic .flag{font-size:58px;line-height:1}
+.mic .ml{font-size:17px;font-weight:700}
+.mic.dim{opacity:.35}
+.jar{background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:6px 16px;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.jar.pop{animation:pop .6s}
+@keyframes pop{40%{transform:scale(1.35)}}
+.stars{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+.star{position:absolute;font-size:34px;animation:rise 1.6s ease-out forwards}
+@keyframes rise{from{transform:translateY(0) scale(.6);opacity:1}to{transform:translateY(-220px) scale(1.2);opacity:0}}
+.mic{width:132px;height:132px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;
+  box-shadow:0 6px 0 color-mix(in srgb,var(--accent) 60%,#000);transition:transform .1s}
+.mic:active{transform:translateY(4px);box-shadow:0 2px 0 color-mix(in srgb,var(--accent) 60%,#000)}
+.mic svg{width:58px;height:58px}
+.mic.listening{background:var(--listen);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 6px 0 color-mix(in srgb,var(--listen) 60%,#000),0 0 0 18px color-mix(in srgb,var(--listen) 25%,transparent)}}
+.mic[disabled]{opacity:.5}
+.status{font-size:17px;color:var(--muted);text-align:center;min-height:1.4em}
+.heard{font-size:15px;color:var(--muted);text-align:center;min-height:1.3em;font-style:italic}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.card:active{transform:scale(.96)}
+.card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px}
+.card .emoji{font-size:48px;line-height:1.15}
+.card .lab{font-size:17px;font-weight:700}
+
+details{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px 16px;user-select:text;-webkit-user-select:text}
+summary{font-weight:700;color:var(--muted);cursor:pointer}
+.log{display:flex;flex-direction:column;gap:6px;margin-top:10px;font-size:15px;max-height:320px;overflow:auto}
+.log .z b{color:var(--listen)} .log .p b{color:var(--accent)}
+.clear{margin-top:10px;font-size:14px;font-weight:700;color:var(--muted);padding:6px 12px;border:2px solid var(--line);border-radius:999px}
+@media (max-width:560px){.robot{width:130px;height:130px}.bubble .text{font-size:20px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="jar" id="jar" aria-live="polite">⭐ <span id="starcount">0</span></div>
+    <button class="newchat" id="newchat">New chat</button>
+  </div>
+
+  <div class="stage">
+    <div class="robot" id="robot" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <g class="bob">
+          <line x1="100" y1="34" x2="100" y2="14" stroke="var(--robot-dark)" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="100" cy="12" r="9" fill="var(--sun)"/>
+          <rect x="88" y="150" width="24" height="16" rx="6" fill="var(--robot-dark)"/>
+          <rect x="52" y="160" width="96" height="36" rx="18" fill="var(--robot)"/>
+          <path d="M100 186 l-8 -8 a5 5 0 0 1 8 -6 a5 5 0 0 1 8 6 z" fill="var(--cheek)"/>
+          <rect x="14" y="82" width="18" height="40" rx="9" fill="var(--robot-dark)"/>
+          <rect x="168" y="82" width="18" height="40" rx="9" fill="var(--robot-dark)"/>
+          <rect x="26" y="34" width="148" height="120" rx="44" fill="var(--robot)"/>
+          <rect x="44" y="52" width="112" height="84" rx="32" fill="var(--screen)"/>
+          <ellipse class="eye" cx="76" cy="88" rx="10" ry="12" fill="var(--face)"/>
+          <ellipse class="eye" cx="124" cy="88" rx="10" ry="12" fill="var(--face)"/>
+          <circle cx="62" cy="110" r="7" fill="var(--cheek)" opacity=".7"/>
+          <circle cx="138" cy="110" r="7" fill="var(--cheek)" opacity=".7"/>
+          <path class="mouth-smile" d="M86 110 q14 12 28 0" fill="none" stroke="var(--face)" stroke-width="5" stroke-linecap="round"/>
+          <ellipse class="mouth-talk" cx="100" cy="114" rx="10" ry="8" fill="var(--face)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="bubble" aria-live="polite">
+      <div class="name">Pipo</div>
+      <div class="text" id="say">Tap a flag to say hello! · Touche un drapeau !</div>
+    </div>
+  </div>
+
+  <div class="microw">
+    <div class="mics">
+      <button class="mic" data-lang="en" id="mic-en" aria-label="Talk to Pipo in English"><span class="flag">🇬🇧</span><span class="ml">English</span></button>
+      <button class="mic fr" data-lang="fr" id="mic-fr" aria-label="Parler à Pipo en français"><span class="flag">🇫🇷</span><span class="ml">Français</span></button>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="heard" id="heard"></div>
+  </div>
+
+  <div class="grid" id="cards"></div>
+  <div class="stars" id="stars"></div>
+
+  <details>
+    <summary>Conversation (for parents)</summary>
+    <div class="log" id="log"></div>
+    <button class="clear" id="clear">Clear conversation</button>
+  </details>
+</div>
+
+<script>
+(function () {
+  const CHILD = 'Zoe', ROBOT = 'Pipo';
+  const FAMILY = [
+    { img: 'photos/zoe.jpg', en: 'Zoe', fr: 'Zoe' },
+    { img: 'photos/dad.jpg', en: 'Dad', fr: 'Papa' },
+    { img: 'photos/mom.jpg', en: 'Mom', fr: 'Maman' },
+    { img: 'photos/moses.jpg', en: 'Moses', fr: 'Moses' },
+    { img: 'photos/abigail.jpg', en: 'Abigail', fr: 'Abigail' }
+  ];
+  const WORDS = [
+    { e: '👋', en: 'hello', fr: 'bonjour' }, { e: '👍', en: 'yes', fr: 'oui' }, { e: '👎', en: 'no', fr: 'non' },
+    { e: '🧸', en: 'play', fr: 'jouer' }, { e: '🎶', en: 'sing', fr: 'chanter' }, { e: '😊', en: 'happy', fr: 'contente' },
+    { e: '😢', en: 'sad', fr: 'triste' }, { e: '🍽️', en: 'hungry', fr: 'faim' }, { e: '🐶', en: 'dog', fr: 'chien' }
+  ];
+  const T = {
+    en: { hi: `Hi ${CHILD}! I'm ${ROBOT}. Tap a flag and talk to me!`, tap: 'Tap a flag and talk!', listening: 'Listening…', thinking: 'Pipo is thinking…',
+      again: "I'm listening! Tap and try again.", nomic: 'Listening is not available here. Tap the pictures to talk to Pipo.',
+      denied: 'Pipo needs the microphone. Parents: allow it in Settings › Safari › Microphone.', heard: 'Pipo heard: ' },
+    fr: { hi: `Bonjour ${CHILD} ! Je suis ${ROBOT}. Touche un drapeau et parle-moi !`, tap: 'Touche un drapeau et parle !', listening: "J'écoute…", thinking: 'Pipo réfléchit…',
+      again: "J'écoute ! Touche et réessaie.", nomic: "L'écoute n'est pas disponible ici. Touche les images pour parler à Pipo.",
+      denied: 'Pipo a besoin du micro. Parents : autorisez-le dans Réglages › Safari › Micro.', heard: 'Pipo a entendu : ' }
+  };
+
+  const $ = id => document.getElementById(id);
+  const robot = $('robot'), mics = [...document.querySelectorAll('.mic')], sayEl = $('say'), statusEl = $('status'), heardEl = $('heard');
+  let lang = 'en', history = [], started = false, busy = false, listening = false;
+  try { lang = localStorage.getItem('pipo.lang') || 'en'; history = JSON.parse(localStorage.getItem('pipo.history') || '[]'); } catch (e) {}
+  function store() { try { localStorage.setItem('pipo.lang', lang); localStorage.setItem('pipo.history', JSON.stringify(history.slice(-60))); } catch (e) {} }
+
+  // ---------- voice out ----------
+  const synth = window.speechSynthesis;
+  function pickVoice() {
+    const vs = synth ? synth.getVoices() : [];
+    const mine = vs.filter(v => v.lang && v.lang.toLowerCase().startsWith(lang));
+    return mine.find(v => /CA/i.test(v.lang)) || mine[0] || null;
+  }
+  function speak(text, done) {
+    sayEl.textContent = text;
+    robot.classList.remove('thinking'); robot.classList.add('talking');
+    const finish = () => { robot.classList.remove('talking'); done && done(); };
+    if (!synth) return setTimeout(finish, 1500);
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === 'fr' ? 'fr-CA' : 'en-CA';
+    const v = pickVoice(); if (v) u.voice = v;
+    u.rate = 0.9; u.pitch = 1.6;
+    const safety = setTimeout(finish, text.length * 110 + 2500);
+    u.onend = u.onerror = () => { clearTimeout(safety); finish(); };
+    synth.speak(u);
+  }
+  // iPad only lets a page speak after a tap, so the first tap "unlocks" the voice.
+  function unlock() {
+    if (started) return; started = true;
+    if (synth) synth.speak(new SpeechSynthesisUtterance(' '));
+    speak(T[lang].hi);
+    setStatus(T[lang].tap);
+  }
+
+  // ---------- talking to Pipo ----------
+  function setStatus(s) { statusEl.textContent = s; }
+  function addLog(who, text) { history.push({ role: who, content: text }); store(); renderLog(); }
+  function renderLog() {
+    const box = $('log'); box.innerHTML = '';
+    history.forEach(m => {
+      const d = document.createElement('div'); d.className = m.role === 'user' ? 'z' : 'p';
+      const b = document.createElement('b'); b.textContent = (m.role === 'user' ? CHILD : ROBOT) + ': ';
+      d.appendChild(b); d.appendChild(document.createTextNode(m.content)); box.appendChild(d);
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+  async function ask(text) {
+    if (busy || !text.trim()) return;
+    busy = true; mics.forEach(m => m.disabled = true);
+    addLog('user', text.trim());
+    reward();
+    robot.classList.add('thinking'); setStatus(T[lang].thinking);
+    let reply;
+    try {
+      const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 20000);
+      const r = await fetch('/api/talk', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ lang, messages: history.slice(-12) }), signal: ctrl.signal });
+      clearTimeout(to);
+      if (r.status === 401) { location.href = '/login'; return; }
+      reply = (await r.json()).text;
+    } catch (e) {
+      reply = lang === 'fr' ? 'Oups ! On réessaie ?' : 'Oops! Can we try again?';
+    }
+    addLog('assistant', reply);
+    speak(reply, () => { busy = false; mics.forEach(m => m.disabled = false); setStatus(T[lang].tap); });
+  }
+
+  // ---------- listening ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  function listen() {
+    if (!SR) { speak(T[lang].nomic); return; }
+    if (listening) { rec && rec.stop(); return; }
+    if (synth) synth.cancel();
+    rec = new SR();
+    rec.lang = lang === 'fr' ? 'fr-CA' : 'en-CA';
+    rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+    let finalText = '', lastText = '';
+    rec.onstart = () => { listening = true; activeMic().classList.add('listening'); mics.forEach(m => { if (m !== activeMic()) m.classList.add('dim'); }); setStatus(T[lang].listening); heardEl.textContent = ''; };
+    rec.onresult = e => {
+      let t = '';
+      for (let i = 0; i < e.results.length; i++) { t += e.results[i][0].transcript; if (e.results[i].isFinal) finalText = t; }
+      lastText = t; heardEl.textContent = T[lang].heard + t;
+    };
+    rec.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') speak(T[lang].denied);
+    };
+    rec.onend = () => {
+      listening = false; mics.forEach(m => m.classList.remove('listening', 'dim'));
+      const said = (finalText || lastText).trim();
+      if (said) ask(said); else { setStatus(T[lang].tap); speak(T[lang].again); }
+    };
+    try { rec.start(); } catch (e) { listening = false; }
+  }
+
+  function activeMic() { return $('mic-' + lang); }
+  mics.forEach(m => m.addEventListener('click', () => {
+    if (listening) { rec && rec.stop(); return; }
+    if (m.dataset.lang !== lang) setLang(m.dataset.lang);
+    if (!started) { unlock(); return; }
+    if (!busy) listen();
+  }));
+
+  // ---------- star jar: one star each time Zoe talks ----------
+  let starCount = 0;
+  try { starCount = parseInt(localStorage.getItem('pipo.stars') || '0', 10) || 0; } catch (e) {}
+  function showStars() { $('starcount').textContent = starCount; }
+  function burst() {
+    const box = $('stars'), r = robot.getBoundingClientRect();
+    for (let i = 0; i < 10; i++) {
+      const s = document.createElement('div'); s.className = 'star';
+      s.textContent = ['⭐', '🌟', '💖', '✨'][i % 4];
+      s.style.left = (r.left + r.width / 2 + (Math.random() * 240 - 120)) + 'px';
+      s.style.top = (r.top + r.height * .6 + Math.random() * 40) + 'px';
+      s.style.animationDelay = (i * 60) + 'ms';
+      box.appendChild(s); setTimeout(() => s.remove(), 2000);
+    }
+  }
+  function reward() {
+    starCount++; try { localStorage.setItem('pipo.stars', String(starCount)); } catch (e) {}
+    showStars(); burst();
+    const j = $('jar'); j.classList.remove('pop'); void j.offsetWidth; j.classList.add('pop');
+  }
+  showStars();
+
+  // ---------- picture buttons ----------
+  function renderCards() {
+    const box = $('cards'); box.innerHTML = '';
+    FAMILY.forEach(f => box.appendChild(card(`<img src="${f.img}" alt="">`, f[lang])));
+    WORDS.forEach(w => box.appendChild(card(`<div class="emoji">${w.e}</div>`, w[lang])));
+  }
+  function card(pic, label) {
+    const b = document.createElement('button'); b.className = 'card';
+    b.innerHTML = pic + '<div class="lab"></div>'; b.querySelector('.lab').textContent = label;
+    b.addEventListener('click', () => { if (!started) unlock(); else ask(label); });
+    return b;
+  }
+
+  // ---------- language + parent controls ----------
+  function setLang(l) {
+    lang = l; store();
+    renderCards();
+    if (started) setStatus(T[lang].tap);
+  }
+  $('newchat').addEventListener('click', () => { history = []; store(); renderLog(); heardEl.textContent = ''; if (started) speak(T[lang].hi); });
+  $('clear').addEventListener('click', () => { history = []; store(); renderLog(); });
+
+  if (!SR) setStatus(T[lang].nomic);
+  setLang(lang); renderLog();
+  if (synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => {};
+})();
+</script>
+</body>
+</html>

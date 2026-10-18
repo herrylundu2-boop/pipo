@@ -1,0 +1,9 @@
+{
+  "name": "pipo",
+  "version": "1.0.0",
+  "description": "Pipo, a talking robot friend for Zoe",
+  "main": "server.js",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": { "start": "node server.js" }
+}
